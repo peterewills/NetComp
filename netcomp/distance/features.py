@@ -9,6 +9,8 @@ import networkx as nx
 import numpy as np
 from scipy import stats
 
+from netcomp.linalg import _eps
+
 def get_features(A):
     """Feature grabber for NetSimile algorithm. Features used are
 
@@ -46,10 +48,12 @@ def get_features(A):
     # list of clustering coefficient
     clust_vec = np.array(list(nx.clustering(G).values()))
     neighbors = [G.neighbors(i) for i in range(n)]
-    # average degree of neighbors
-    neighbor_deg = [d_vec[neighbors[i]].sum()/d_vec[i] for i in range(n)]
-    # avg. clustering coefficient of neighbors
-    neighbor_clust = [clust_vec[neighbors[i]].sum()/d_vec[i] for i in range(n)]
+    # average degree of neighbors (0 if node is isolated)
+    neighbor_deg = [d_vec[neighbors[i]].sum()/d_vec[i]
+                    if d_vec[i]>_eps else 0 for i in range(n)]
+    # avg. clustering coefficient of neighbors (0 if node is isolated)
+    neighbor_clust = [clust_vec[neighbors[i]].sum()/d_vec[i] 
+                    if d_vec[i]>_eps else 0 for i in range(n)]
     egonets = [nx.ego_graph(G,i) for i in range(n)]
     # number of edges in egonet
     ego_size = [G.number_of_edges() for G in egonets]
@@ -66,6 +70,8 @@ def get_features(A):
     feature_mat = np.array([d_vec,clust_vec,neighbor_deg,neighbor_clust,
                             ego_size,ego_neighbors,outgoing_edges]).T 
     return feature_mat
+
+
 
 
 def aggregate_features(feature_mat,row_var=False,as_matrix=False):

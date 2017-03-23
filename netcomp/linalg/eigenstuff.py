@@ -12,7 +12,12 @@ import numpy as np
 
 # irrelevant until I implement sanity checks (See below)
 from netcomp.exception import InputError
-from netcomp.linalg.matrices import _flat
+from netcomp.linalg.matrices import _flat,_eps
+
+######################
+## Helper Functions ##
+######################
+
 
 def _eigs(A,k):
     """ Helper function. Runs numpy.linalg.eig if k is n or n-1, and runs
@@ -24,7 +29,7 @@ def _eigs(A,k):
     elif k in [n-1,n]:
         try:
             A = A.todense()
-        except:
+        except AttributeError:
             pass
         # use numpy
         evals,evecs = la.eig(A)
@@ -34,10 +39,20 @@ def _eigs(A,k):
         evecs = evecs[:,inds[:k]]
         return evals,evecs
     else:
+        try:
+            # if A is made of ints, we can't do eigs() below
+            A = A.asfptype()
+        except AttributeError:
+            pass
         evals,evecs = sps.linalg.eigs(A,k=k)
         # sps.linalg.eigs returns the k smallest, sorted from largest to
         # smallest. So we reverse the ordering to match the above.
         return evals[::-1],evecs[:,::-1]
+
+
+#####################
+##  Get Eigenstuff ##
+#####################
 
 def normalized_laplacian_eig(A,k=None):
     """Return the eigenstuff of the normalized Laplacian matrix of graph
@@ -87,10 +102,11 @@ def normalized_laplacian_eig(A,k=None):
     ## TODO: implement checks on the adjacency matrix
     ##
     degs = _flat(A.sum(axis=1))
-    # the below will break if 
-    rootD = sps.spdiags(np.power(degs,-1/2), [0], n, n, format='csr')
+    # the below will break if
+    inv_root_degs = [d**(-1/2) if d>_eps else 0 for d in degs]
+    inv_rootD = sps.spdiags(inv_root_degs, [0], n, n, format='csr')
     # build normalized diffusion matrix
-    K = rootD*A*rootD
+    K = inv_rootD*A*inv_rootD
     if k is None:
         k = n
     evals,evecs = _eigs(K,k)

@@ -19,5 +19,5 @@ from netcomp.linalg.fast_bp import *
 import netcomp.linalg.fast_bp
 
 # import helper functions for use in other places
-from netcomp.linalg.matrices import _flat,_pad
+from netcomp.linalg.matrices import _flat,_pad,_eps
 from netcomp.linalg.eigenstuff import _eigs

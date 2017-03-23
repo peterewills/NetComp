@@ -5,9 +5,11 @@ Matrices
 
 Matrices associated with graphs. Also contains linear algebraic helper functions.
 """
+
 from scipy import sparse as sps
 import numpy as np
 
+_eps = 10**(-10) # a small parameter
 
 ######################
 ## Helper Functions ##
@@ -18,28 +20,35 @@ def _flat(D):
     """Helper function for flattening column or row matrices, as well as
     arrays"""
     try:
-        d_flat = D.A1
+        D = D.todense()
     except AttributeError:
-        d_flat = np.array(D).flatten()
+        pass
+    d_flat = np.array(D).flatten()
     return d_flat
 
 
 def _pad(A,N):
-    """Pad A with so A.shape is (N,N)"""
+    """Pad A so A.shape is (N,N)"""
     n,_ = A.shape
     if n>=N:
         return A
     else:
-        side = np.zeros((n,N-n))
-        A_pad = np.concatenate([A,side],axis=1)
-        bottom = np.zeros((N-n,N))
-        A_pad = np.concatenate([A_pad,bottom])
+        try:
+            side = np.zeros((n,N-n))
+            bottom = np.zeros((N-n,N))
+            A_pad = np.concatenate([A,side],axis=1)
+            A_pad = np.concatenate([A_pad,bottom])
+        except ValueError:
+            # thrown if we try to np.concatenate sparse matrices
+            side = sps.csr_matrix((n,N-n))
+            bottom = sps.csr_matrix((N-n,N))
+            A_pad = sps.hstack([A,side])
+            A_pad = sps.vstack([A_pad,bottom])
         return A_pad
-    
 
 
 ########################
-## Matrices of Grpahs ##
+## Matrices of Graphs ##
 ########################
 
 
@@ -84,4 +93,4 @@ def laplacian_matrix(A,normalized=False):
         degs = _flat(A.sum(axis=1))
         rootD = sps.spdiags(np.power(degs,-1/2), [0], n, n, format='csr')
         L = rootD*L*rootD
-    return L  
+    return L

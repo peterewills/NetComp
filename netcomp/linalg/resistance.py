@@ -135,7 +135,10 @@ def renormalized_res_mat(A,beta=1):
     resistance_matrix
 
     """
-    G = nx.from_numpy_matrix(A)
+    try:
+        G = nx.from_numpy_matrix(A)
+    except SystemError: # thrown when A is sparse
+        G = nx.from_scipy_sparse_matrix(A)        
     n = len(G)
     subgraphR = []
     for subgraph in nx.connected_component_subgraphs(G):

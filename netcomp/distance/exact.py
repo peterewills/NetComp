@@ -8,7 +8,7 @@ Calculation of exact distances between graphs. Generally slow.
 
 import numpy as np
 from numpy import linalg as la
-from math import ceil
+from math import ceil as _ceil
 import networkx as nx
 
 from netcomp.linalg import (renormalized_res_mat,resistance_matrix,
@@ -16,6 +16,49 @@ from netcomp.linalg import (renormalized_res_mat,resistance_matrix,
                             _flat,_pad,_eigs)
 from netcomp.distance import get_features,aggregate_features
 from netcomp.exception import InputError
+
+
+######################
+## Helper Functions ##
+######################
+
+
+def _canberra_dist(v1,v2):
+    """The canberra distance between two vectors. We need to carefully handle
+    the case in which both v1 and v2 are zero in a certain dimension."""
+    eps = 10**(-15)
+    v1,v2 = [_flat(v) for v in [v1,v2]]
+    d_can = 0
+    for u,w in zip(v1,v2):
+        if np.abs(u)<eps and np.abs(w)<eps:
+            d_update = 1
+        else:
+            d_update = np.abs(u-w) / (np.abs(u)+np.abs(w))
+        d_can += d_update
+    return d_can
+
+
+#############################
+## Distance Between Graphs ##
+#############################
+
+
+def edit_distance(A1,A2):
+    """The edit distance between graphs, defined as the number of changes one
+    needs to make to put the edge lists in correspondence.
+
+    Parameters
+    ----------
+    A1, A2 : NumPy matrices
+        Adjacency matrices of graphs to be compared
+
+    Returns
+    -------
+    dist : float
+        The edit distance between the two graphs
+    """
+    dist = np.abs((A1-A2).sum()) / 2
+    return dist
 
 
 def vertex_edge_overlap(A1,A2):
@@ -51,6 +94,7 @@ def vertex_edge_overlap(A1,A2):
     E_overlap = len(E1|E2)
     sim = (V_overlap + E_overlap) / (len(V1)+len(V2)+len(E1)+len(E2))
     return sim
+
 
 def vertex_edge_distance(A1,A2):
     """Vertex-edge overlap transformed into a distance via
@@ -124,7 +168,7 @@ def lambda_dist(A1,A2,k=None,p=2,kind='laplacian'):
     n1,n2 = [A.shape[0] for A in [A1,A2]]
     N = min(n1,n2) # minimum size between the two graphs
     if k is None:
-        k = ceil(N/10)
+        k = _ceil(N/10)
     if N < k:
         raise InputError('k must be strictly less than the minimum size of the'
                          ' two input graphs.')
@@ -172,11 +216,11 @@ def netsimile(A1,A2):
     feat_A1,feat_A2 = [get_features(A) for A in [A1,A2]]
     agg_A1,agg_A2 = [aggregate_features(feat) for feat in [feat_A1,feat_A2]]
     # calculate Canberra distance between two aggregate vectors
-    d_can = (np.abs(agg_A1-agg_A2) / (agg_A1 + agg_A2)).sum()
+    d_can = _canberra_dist(agg_A1,agg_A2)
     return d_can
     
     
-def res_dist(A1,A2,p=2,renormalized=False,attributed=False):
+def resistance_distance(A1,A2,p=2,renormalized=False,attributed=False,beta=1):
     """Compare two graphs using resistance distance (possibly renormalized).
 
     Parameters
@@ -192,6 +236,10 @@ def res_dist(A1,A2,p=2,renormalized=False,attributed=False):
 
     attributed : Boolean, optional (default=False)
         If true, then the resistance distance PER NODE is returned.
+
+    beta : float, optional (default=1)
+        A parameter used in the calculation of the renormalized resistance
+        matrix. If using regular resistance, this is irrelevant.
 
     Returns
     -------
@@ -217,16 +265,20 @@ def res_dist(A1,A2,p=2,renormalized=False,attributed=False):
         n1,n2 = [A.shape[0] for A in [A1,A2]]
         N = max(n1,n2)
         A1,A2 = [_pad(A,N) for A in [A1,A2]]
-        R1,R2 = [renormalized_res_mat(A) for A in [A1,A2]]
+        R1,R2 = [renormalized_res_mat(A,beta=beta) for A in [A1,A2]]
     else:
         R1,R2 = [resistance_matrix(A) for A in [A1,A2]]
-    distance_vector = np.sum((R1-R2)**p,axis=1)
+    try:
+        distance_vector = np.sum((R1-R2)**p,axis=1)
+    except ValueError:
+        raise InputError('Input matrices are different sizes. Please use '
+                         'renormalized resistance distance.')
     if attributed:
         return distance_vector**(1/p)
     else:
         return np.sum(distance_vector)**(1/p)
 
-def deltacon0_dist(A1,A2,eps=None):
+def deltacon0(A1,A2,eps=None):
     """DeltaCon0 distance between two graphs. The distance is the Frobenius norm
     of the element-wise square root of the fast belief propogation matrix.
 
@@ -247,6 +299,10 @@ def deltacon0_dist(A1,A2,eps=None):
     --------
     fast_bp
     """
+    # pad smaller adj. mat. so they're the same size
+    n1,n2 = [A.shape[0] for A in [A1,A2]]
+    N = max(n1,n2)
+    A1,A2 = [_pad(A,N) for A in [A1,A2]]
     S1,S2 = [fast_bp(A,eps=eps) for A in [A1,A2]]
     dist = la.norm(np.sqrt(_flat(S1)) - np.sqrt(_flat(S2)))
     return dist
