@@ -40,7 +40,7 @@ def fast_bp(A,eps=None):
     ##
     ## TODO: implement checks on the adjacency matrix
     ##
-    degs = np.array(np.sum(A,axis=1)).flatten()
+    degs = np.array(A.sum(axis=1)).flatten()
     if eps is None:
         eps = 1/(1+max(degs))
     I = sps.identity(n)
