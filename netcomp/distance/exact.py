@@ -133,10 +133,8 @@ def lambda_dist(A1,A2,k=None,p=2,kind='laplacian'):
     A1, A2 : NumPy matrices
         Adjacency matrices of graphs to be compared
 
-    k : Int
-        The number of eigenvalues to be compared. Eigenvalues are sorted from
-        greatest to least. We require k <= min(N1,N2) where N1 and N2 are the
-        sizes of A1 and A2 respectively.
+    k : Integer
+        The number of eigenvalues to be compared
 
     p : non-zero Float
         The p-norm is used to compare the resulting vector of eigenvalues.
@@ -168,24 +166,21 @@ def lambda_dist(A1,A2,k=None,p=2,kind='laplacian'):
     n1,n2 = [A.shape[0] for A in [A1,A2]]
     N = min(n1,n2) # minimum size between the two graphs
     if k is None:
-        k = _ceil(N/10)
-    if N < k:
-        raise InputError('k must be strictly less than the minimum size of the'
-                         ' two input graphs.')
+        k = N
     if kind is 'laplacian':
         # form matrices
         L1,L2 = [laplacian_matrix(A) for A in [A1,A2]]
         # get eigenvalues, ignore eigenvectors
-        evals1,evals2 = [_eigs(L,k=k)[0] for L in [L1,L2]]
+        evals1,evals2 = [_eigs(L)[0] for L in [L1,L2]]
     elif kind is 'laplacian_norm':
         # use our function to graph evals of normalized laplacian
-        evals1,evals2 = [normalized_laplacian_eig(A,k=k)[0] for A in [A1,A2]]
+        evals1,evals2 = [normalized_laplacian_eig(A)[0] for A in [A1,A2]]
     elif kind is 'adjacency':
-        evals1,evals2 = [_eigs(A,k=k)[0] for A in [A1,A2]]
+        evals1,evals2 = [_eigs(A)[0] for A in [A1,A2]]
     else:
         raise InputError("Invalid type, choose from 'laplacian', "
                          "'laplacian_norm', and 'adjacency'.")
-    dist = la.norm(evals1-evals2,ord=p)
+    dist = la.norm(evals1[:k]-evals2[:k],ord=p)
     return dist
 
 
@@ -220,7 +215,8 @@ def netsimile(A1,A2):
     return d_can
     
     
-def resistance_distance(A1,A2,p=2,renormalized=False,attributed=False,beta=1):
+def resistance_distance(A1,A2,p=2,renormalized=False,attributed=False,
+                        check_connected=True,beta=1):
     """Compare two graphs using resistance distance (possibly renormalized).
 
     Parameters
@@ -236,6 +232,10 @@ def resistance_distance(A1,A2,p=2,renormalized=False,attributed=False,beta=1):
 
     attributed : Boolean, optional (default=False)
         If true, then the resistance distance PER NODE is returned.
+
+    check_connected : Boolean, optional (default=True)
+        If false, then no check on connectivity is performed. See Notes of
+        resistance_matrix for more information.
 
     beta : float, optional (default=1)
         A parameter used in the calculation of the renormalized resistance
@@ -267,7 +267,8 @@ def resistance_distance(A1,A2,p=2,renormalized=False,attributed=False,beta=1):
         A1,A2 = [_pad(A,N) for A in [A1,A2]]
         R1,R2 = [renormalized_res_mat(A,beta=beta) for A in [A1,A2]]
     else:
-        R1,R2 = [resistance_matrix(A) for A in [A1,A2]]
+        R1,R2 = [resistance_matrix(A,check_connected=check_connected)
+                 for A in [A1,A2]]
     try:
         distance_vector = np.sum((R1-R2)**p,axis=1)
     except ValueError:

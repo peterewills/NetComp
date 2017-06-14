@@ -11,16 +11,22 @@ from numpy import linalg as la
 from scipy import linalg as spla
 import numpy as np
 
-from netcomp.linalg import laplacian_matrix
+from netcomp.linalg import laplacian_matrix, normalized_laplacian_eig
+from netcomp.linalg.matrices import _eps
+from netcomp.exception import UndefinedException
 
 
-def resistance_matrix(A):
+def resistance_matrix(A,check_connected=True):
     """Return the resistance matrix of G.
 
     Parameters
     ----------
     A : NumPy matrix or SciPy sparse matrix
         Adjacency matrix of a graph.
+
+    check_connected : Boolean, optional (default=True)
+        If false, then the resistance matrix will be computed even for
+        disconnected matrices. See Notes.
 
     Returns
     -------
@@ -30,10 +36,16 @@ def resistance_matrix(A):
     Notes
     -----
     Uses formula for resistance matrix R in terms of Moore-Penrose pseudoinverse
-    of (non-normalized) graph Laplacian. See e.g. Theorem 2.1 in [1].
+    of (non-normalized) graph Laplacian. See e.g. Theorem 2.1 in [1]. 
+
+    This formula can be computed even for disconnected graphs, although the
+    interpretation in this case is unclear. Thus, the usage of
+    check_connected=False is recommended only to reduce computation time in a
+    scenario in which the user is confident the graph in question is, in fact,
+    connected.
 
     Only the upper triangular portion of the matrix R is returned. Proper
-    resistance matrix is symmetric.
+    resistance matrix is symmetric.    
 
     See Also
     --------
@@ -44,13 +56,19 @@ def resistance_matrix(A):
     .. [1] W. Ellens, et al. (2011)
        Effective graph resistance.
        Linear Algebra and its Applications, 435 (2011)
+
     """
     n,m = A.shape
+    # check if graph is connected
+    try: A = A.todense()
+    except: pass
+    if check_connected:
+        if not nx.is_connected(nx.from_numpy_matrix(A)):
+            raise UndefinedException('Graph is not connected. '
+                                     'Resistance matrix is undefined')
     L = laplacian_matrix(A)
-    try:
-        L = L.todense()
-    except:
-        pass
+    try: L = L.todense()
+    except: pass
     M = la.pinv(L)
     # calculate R in terms of M
     d = np.reshape(np.diag(M),(n,1))

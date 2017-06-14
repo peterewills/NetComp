@@ -17,8 +17,7 @@ _eps = 10**(-10) # a small parameter
 
 
 def _flat(D):
-    """Helper function for flattening column or row matrices, as well as
-    arrays"""
+    """Flatten column or row matrices, as well as arrays."""
     try:
         D = D.todense()
     except AttributeError:
