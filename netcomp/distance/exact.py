@@ -57,7 +57,7 @@ def edit_distance(A1,A2):
     dist : float
         The edit distance between the two graphs
     """
-    dist = np.abs((A1-A2).sum()) / 2
+    dist = np.abs((A1-A2)).sum() / 2
     return dist
 
 

@@ -44,9 +44,6 @@ def resistance_matrix(A,check_connected=True):
     scenario in which the user is confident the graph in question is, in fact,
     connected.
 
-    Only the upper triangular portion of the matrix R is returned. Proper
-    resistance matrix is symmetric.    
-
     See Also
     --------
     nx.laplacian_matrix
