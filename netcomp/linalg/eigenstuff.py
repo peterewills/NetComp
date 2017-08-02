@@ -31,7 +31,7 @@ def _eigs(A):
     # use numpy
     evals,evecs = la.eig(A)
     # sort dem eigenvalues
-    inds = np.argsort(evals)[::-1]
+    inds = np.argsort(evals)
     evals = evals[inds]
     evecs = evecs[:,inds]
     return evals,evecs

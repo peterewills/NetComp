@@ -8,7 +8,6 @@ Calculation of exact distances between graphs. Generally slow.
 
 import numpy as np
 from numpy import linalg as la
-from math import ceil as _ceil
 import networkx as nx
 
 from netcomp.linalg import (renormalized_res_mat,resistance_matrix,
@@ -153,6 +152,10 @@ def lambda_dist(A1,A2,k=None,p=2,kind='laplacian'):
     result is not a mathematical norm, but may still be interesting and/or
     useful.
 
+    If k is provided, then we use the k SMALLEST eigenvalues for the Laplacian
+    distances, and we use the k LARGEST eigenvalues for the adjacency
+    distance. This is because the corresponding order flips, as $L=D-A$.
+
     References
     ----------
 
@@ -177,6 +180,9 @@ def lambda_dist(A1,A2,k=None,p=2,kind='laplacian'):
         evals1,evals2 = [normalized_laplacian_eig(A)[0] for A in [A1,A2]]
     elif kind is 'adjacency':
         evals1,evals2 = [_eigs(A)[0] for A in [A1,A2]]
+        # reverse, so that we are sorted from large to small, since we care
+        # about the k LARGEST eigenvalues for the adjacency distance
+        evals1,evals2 = [evals[::-1] for evals in [evals1,evals2]]
     else:
         raise InputError("Invalid type, choose from 'laplacian', "
                          "'laplacian_norm', and 'adjacency'.")
