@@ -20,3 +20,5 @@
 
 - Think about how we handle sparse vs dense matrices.
 	- can we do this more intelligently to speed up our calculations? 
+- We should be able to do fast calculations of the lambda-k distances, but right
+  now we calculate all k of the eigenvalues. Think about how to fix this.

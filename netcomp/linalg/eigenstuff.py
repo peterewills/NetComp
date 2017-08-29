@@ -91,5 +91,6 @@ def normalized_laplacian_eig(A):
     # build normalized diffusion matrix
     K = inv_rootD*A*inv_rootD
     evals,evecs = _eigs(K)
-    lap_evals = 1-evals
+    lap_evals = 1-evals[::-1]
+    evecs = evecs[:,::-1]
     return np.real(lap_evals),np.real(evecs)
