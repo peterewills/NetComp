@@ -11,8 +11,6 @@ from numpy import linalg as la
 from scipy import linalg as spla
 import numpy as np
 
-from netcomp.linalg import laplacian_matrix, normalized_laplacian_eig
-from netcomp.linalg.matrices import _eps
 from netcomp.exception import UndefinedException
 
 
