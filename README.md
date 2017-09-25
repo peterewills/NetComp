@@ -4,23 +4,21 @@ NetComp is a Python library implementing various algorithms for comparison of ne
  
 ## Installation
  
-Here's how you install NetComp:
+To install NetComp, do
 
-TODO: Installation instructions
+	pip install netcomp
  
 ## Usage
 
-Although many common packages, such as [NetworkX](https://github.com/networkx/networkx) treat graphs as fundamental objects, this package treats the adjacency matrix as the object of interest. 
- 
-TODO: Usage instructions
-
-To convert from a NetworkX graph to an adjacency matrix, do
+Although many common packages, such as [NetworkX](https://github.com/networkx/networkx) treat graphs as fundamental objects, this package treats the adjacency matrix as the object of interest. In this usage example, we will use NetworkX to generate our graphs, then transform them to adjacency matrices before using NetComp
 
 	>> import networkx as nx
-	>> G = nx.Graph()
-	>> A = nx.adjacency_matrix(G).todense()
+	>> import netcomp as nc
+	>> G1,G2 = [nx.erdos_renyi_graph(10,1/2) for _ in range(2)] # 2 random graphs
+	>> A1,A2 = [nx.adjacency_matrix(G).todense() for G in [G1,G2]]
+	>> nc.lambda_dist(A1,A2,kind='laplacian',k=10)
 	
-The final `.todense()` method is only necessary because sparse matrix operations have not been fully implemented.	
+Converting the adjacency matrices to dense form using `.todense()` method is only necessary because sparse matrix operations have not been fully implemented.	
  
 ## Contributing
  
