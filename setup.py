@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(name='NetComp',
       version='0.1',
@@ -9,6 +9,7 @@ setup(name='NetComp',
       packages=[
           'netcomp'
       ],
+      url='https://github.com/peterewills/NetComp',
       install_requires=[
           'numpy>=1.11.3',
           'scipy>=0.18',
