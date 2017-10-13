@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='NetComp',
-      version='0.1',
+      version='0.2',
       description='Network Comparison',
       license='MIT',
       author='Peter Wills',

@@ -1,17 +1,17 @@
 """
-NetComp
-=======
+NetComp v0.2
+============
 
     NetComp is a Python package for comparing networks using pairwise distances,
     and for performing anomaly detection on a time series of networks. It is
-    built on top of the NetworkX package.
-
-Using
------
-
-    Just use it!
+    built on top of the NetworkX package. For details on usage and installation,
+    see README.md.
 
 """
+
+__author__ = 'Peter Wills <peter.e.wills@gmail.com>'
+__version__ = 0.2
+__license__ = 'MIT'
 
 import sys
 if sys.version_info[0] < 3:
@@ -24,6 +24,3 @@ import netcomp.linalg
 
 from netcomp.distance import *
 import netcomp.distance
-
-def in_the_right_package():
-    print('Yup!')
