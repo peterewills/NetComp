@@ -7,40 +7,70 @@ Functions for calculating eigenstuff of graphs.
 """
 
 from scipy import sparse as sps
-from numpy import linalg as la
 import numpy as np
+from scipy.sparse import linalg as spla
+from numpy import linalg as la
 
-# irrelevant until I implement sanity checks (See below)
-# from netcomp.exception import InputError
+from scipy.sparse import issparse
 from netcomp.linalg.matrices import _flat,_eps
+
 
 ######################
 ## Helper Functions ##
 ######################
 
 
-def _eigs(A):
-    """ Helper function for getting eigenstuff. Converts to dense if necessary,
-    converts to float if necessary, then runs numpy.linalg.eigs. Returns sorted eigenvalues."""
-    n,_ = A.shape
-    A = A.astype(float)
-    try:
-        A = A.todense()
-    except AttributeError:
-        pass
-    # use numpy
-    evals,evecs = la.eig(A)
-    # sort dem eigenvalues
-    inds = np.argsort(evals)
-    evals = evals[inds]
-    evecs = evecs[:,inds]
-    return evals,evecs
+def _eigs(M,which='SR',k=None):
+    """ Helper function for getting eigenstuff.
+
+    Parameters
+    ----------
+    M : matrix, numpy or scipy sparse
+        The matrix for which we hope to get eigenstuff.
+    which : string in {'SR','LR'}
+        If 'SR', get eigenvalues with smallest real part. If 'LR', get largest.
+    k : int
+        Number of eigenvalues to return
+
+    Returns
+    -------
+    evals, evecs : numpy arrays
+        Eigenvalues and eigenvectors of matrix M, sorted in ascending or
+        descending order, depending on 'which'.
+
+    See Also
+    --------
+    numpy.linalg.eig
+    scipy.sparse.eigs        
+    """
+    n,_ = M.shape
+    if k is None:
+        k = n
+    if which not in ['LR','SR']:
+        raise ValueError("which must be either 'LR' or 'SR'.")
+    M = M.astype(float)
+    if issparse(M) and k < n-1:
+        evals,evecs = spla.eigs(M,k=k,which=which)
+    else:
+        try: M = M.todense()
+        except: pass
+        evals,evecs = la.eig(M)
+        # sort dem eigenvalues
+        inds = np.argsort(evals)
+        if which == 'LR':
+            inds = inds[::-1]
+        else: pass
+        inds = inds[:k]
+        evals = evals[inds]
+        evecs = np.matrix(evecs[:,inds])
+    return np.real(evals),np.real(evecs)
+
 
 #####################
 ##  Get Eigenstuff ##
 #####################
 
-def normalized_laplacian_eig(A):
+def normalized_laplacian_eig(A,k=None):
     """Return the eigenstuff of the normalized Laplacian matrix of graph
     associated with adjacency matrix A.
 
@@ -56,6 +86,9 @@ def normalized_laplacian_eig(A):
     ----------
     A : NumPy matrix
         Adjacency matrix of a graph
+
+    k : int, 0 < k < A.shape[0]-1
+        The number of eigenvalues to grab. 
 
     Returns
     -------
@@ -90,7 +123,6 @@ def normalized_laplacian_eig(A):
     inv_rootD = sps.spdiags(inv_root_degs, [0], n, n, format='csr')
     # build normalized diffusion matrix
     K = inv_rootD*A*inv_rootD
-    evals,evecs = _eigs(K)
-    lap_evals = 1-evals[::-1]
-    evecs = evecs[:,::-1]
+    evals,evecs = _eigs(K,k=k,which='LR')
+    lap_evals = 1-evals
     return np.real(lap_evals),np.real(evecs)

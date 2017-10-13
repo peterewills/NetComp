@@ -3,7 +3,8 @@
 Exact Distances
 ***************
 
-Calculation of exact distances between graphs. Generally slow.
+Calculation of exact distances between graphs. Generally slow (quadratic in
+graph size).
 """
 
 import numpy as np
@@ -311,5 +312,5 @@ def deltacon0(A1,A2,eps=None):
     N = max(n1,n2)
     A1,A2 = [_pad(A,N) for A in [A1,A2]]
     S1,S2 = [fast_bp(A,eps=eps) for A in [A1,A2]]
-    dist = la.norm(np.sqrt(_flat(S1)) - np.sqrt(_flat(S2)))
+    dist = np.abs(np.sqrt(S1)-np.sqrt(S2)).sum()
     return dist

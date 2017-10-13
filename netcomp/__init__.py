@@ -24,3 +24,6 @@ import netcomp.linalg
 
 from netcomp.distance import *
 import netcomp.distance
+
+def in_the_right_package():
+    print('Yup!')

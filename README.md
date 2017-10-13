@@ -15,10 +15,8 @@ Although many common packages, such as [NetworkX](https://github.com/networkx/ne
 	>> import networkx as nx
 	>> import netcomp as nc
 	>> G1,G2 = [nx.erdos_renyi_graph(10,1/2) for _ in range(2)] # 2 random graphs
-	>> A1,A2 = [nx.adjacency_matrix(G).todense() for G in [G1,G2]]
+	>> A1,A2 = [nx.adjacency_matrix(G) for G in [G1,G2]]
 	>> nc.lambda_dist(A1,A2,kind='laplacian',k=10)
-	
-Converting the adjacency matrices to dense form using `.todense()` method is only necessary because sparse matrix operations have not been fully implemented.	
  
 ## Contributing
  

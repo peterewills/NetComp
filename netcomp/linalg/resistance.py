@@ -10,7 +10,9 @@ import networkx as nx
 from numpy import linalg as la
 from scipy import linalg as spla
 import numpy as np
+from scipy.sparse import issparse
 
+from netcomp.linalg.matrices import laplacian_matrix
 from netcomp.exception import UndefinedException
 
 
@@ -33,14 +35,18 @@ def resistance_matrix(A,check_connected=True):
 
     Notes
     -----
-    Uses formula for resistance matrix R in terms of Moore-Penrose pseudoinverse
-    of (non-normalized) graph Laplacian. See e.g. Theorem 2.1 in [1]. 
+    Uses formula for resistance matrix R in terms of Moore-Penrose of
+    pseudoinverse (non-normalized) graph Laplacian. See e.g. Theorem 2.1 in [1]. 
 
     This formula can be computed even for disconnected graphs, although the
     interpretation in this case is unclear. Thus, the usage of
     check_connected=False is recommended only to reduce computation time in a
     scenario in which the user is confident the graph in question is, in fact,
     connected.
+
+    Since we do not expect the pseudoinverse of the laplacian to be sparse, we
+    convert L to dense form before running np.linalg.pinv(). The returned
+    resistance matrix is dense.
 
     See Also
     --------
@@ -55,12 +61,14 @@ def resistance_matrix(A,check_connected=True):
     """
     n,m = A.shape
     # check if graph is connected
-    try: A = A.todense()
-    except: pass
     if check_connected:
-        if not nx.is_connected(nx.from_numpy_matrix(A)):
+        if issparse(A):
+            G = nx.from_scipy_sparse_matrix(A)
+        else:
+            G = nx.from_numpy_matrix(A)
+        if not nx.is_connected(G):
             raise UndefinedException('Graph is not connected. '
-                                     'Resistance matrix is undefined')
+                                     'Resistance matrix is undefined.')
     L = laplacian_matrix(A)
     try: L = L.todense()
     except: pass
@@ -143,15 +151,20 @@ def renormalized_res_mat(A,beta=1):
     R :  NumPy array
        Matrix of pairwise renormalized resistances between nodes.
 
+    Notes
+    -----
+    This function converts to a NetworkX graph, as it uses the algorithms
+    therein for identifying connected components.
+
     See Also
     --------
     resistance_matrix
 
     """
-    try:
-        G = nx.from_numpy_matrix(A)
-    except SystemError: # thrown when A is sparse
+    if issparse(A):
         G = nx.from_scipy_sparse_matrix(A)        
+    else:
+        G = nx.from_numpy_matrix(A)
     n = len(G)
     subgraphR = []
     for subgraph in nx.connected_component_subgraphs(G):
@@ -206,7 +219,10 @@ def conductance_matrix(A):
     renormalized_res_mat
 
     """
-    G = nx.from_numpy_matrix(A)
+    if issparse(A):
+        G = nx.from_scipy_sparse_matrix(A)        
+    else:
+        G = nx.from_numpy_matrix(A)
     subgraphC = []
     for subgraph in nx.connected_component_subgraphs(G):
         a_sub = nx.adjacency_matrix(subgraph)
