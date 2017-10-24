@@ -1,6 +1,6 @@
 """
-NetComp v0.2
-============
+NetComp v0.2.2
+==============
 
     NetComp is a Python package for comparing networks using pairwise distances,
     and for performing anomaly detection on a time series of networks. It is
@@ -10,7 +10,7 @@ NetComp v0.2
 """
 
 __author__ = 'Peter Wills <peter.e.wills@gmail.com>'
-__version__ = 0.2
+__version__ = '0.2.2'
 __license__ = 'MIT'
 
 import sys

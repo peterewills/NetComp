@@ -155,7 +155,7 @@ def lambda_dist(A1,A2,k=None,p=2,kind='laplacian'):
 
     If k is provided, then we use the k SMALLEST eigenvalues for the Laplacian
     distances, and we use the k LARGEST eigenvalues for the adjacency
-    distance. This is because the corresponding order flips, as $L=D-A$.
+    distance. This is because the corresponding order flips, as L = D-A.
 
     References
     ----------
@@ -169,7 +169,7 @@ def lambda_dist(A1,A2,k=None,p=2,kind='laplacian'):
     # ensure valid k
     n1,n2 = [A.shape[0] for A in [A1,A2]]
     N = min(n1,n2) # minimum size between the two graphs
-    if k is None:
+    if k is None or k > N:
         k = N
     if kind is 'laplacian':
         # form matrices
