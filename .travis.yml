@@ -8,7 +8,10 @@ branches:
     - master
 # command to install dependencies
 install:
-  - pip install .
   - pip install -r requirements.txt
+  - pip install codecov
+  - pip install .
 script:
   - python test.py
+after_success:
+  - codecov
