@@ -1,6 +1,7 @@
 # NetComp v0.2
 
 ![Travis CI](https://travis-ci.org/peterewills/NetComp.svg?branch=master)
+[![codecov](https://codecov.io/gh/peterewills/NetComp/branch/master/graph/badge.svg)](https://codecov.io/gh/peterewills/NetComp)
  
 NetComp is a Python library implementing various algorithms for comparison of networks. A network is a collection of nodes and edges, also known as a graph.
  

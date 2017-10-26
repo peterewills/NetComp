@@ -5,3 +5,5 @@ __pycache__
 NetComp.egg-info/*
 dist/*
 tests/*
+.coverage
+coverage.xml
