@@ -10,6 +10,7 @@ branches:
 install:
   - pip install -r requirements.txt
   - pip install codecov
+  - pip install coverage
   - pip install .
 script:
   - python test.py
