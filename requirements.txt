@@ -2,5 +2,5 @@
 
 numpy>=1.11.3
 scipy>=0.18
-networkx<2 # No support for NetworkX 2, at the moment
+networkx
 

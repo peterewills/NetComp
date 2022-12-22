@@ -10,6 +10,7 @@ from scipy import sparse as sps
 import numpy as np
 from numpy import linalg as la
 
+
 def fast_bp(A,eps=None):
     """Return the fast belief propogation matrix of graph associated with A.
 
