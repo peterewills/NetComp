@@ -12,7 +12,7 @@ from scipy.sparse import linalg as spla
 from numpy import linalg as la
 
 from scipy.sparse import issparse
-from netcomp.linalg.matrices import _flat,_eps
+from netcomp.linalg.matrices import _flat, _eps
 
 
 ######################
@@ -20,7 +20,7 @@ from netcomp.linalg.matrices import _flat,_eps
 ######################
 
 
-def _eigs(M,which='SR',k=None):
+def _eigs(M, which='SR', k=None):
     """ Helper function for getting eigenstuff.
 
     Parameters
@@ -43,34 +43,37 @@ def _eigs(M,which='SR',k=None):
     numpy.linalg.eig
     scipy.sparse.eigs        
     """
-    n,_ = M.shape
+    n, _ = M.shape
     if k is None:
         k = n
-    if which not in ['LR','SR']:
+    if which not in ['LR', 'SR']:
         raise ValueError("which must be either 'LR' or 'SR'.")
     M = M.astype(float)
-    if issparse(M) and k < n-1:
-        evals,evecs = spla.eigs(M,k=k,which=which)
+    if issparse(M) and k < n - 1:
+        evals, evecs = spla.eigs(M, k=k, which=which)
     else:
-        try: M = M.todense()
-        except: pass
-        evals,evecs = la.eig(M)
+        try:
+            M = M.todense()
+        except:
+            pass
+        evals, evecs = la.eig(M)
         # sort dem eigenvalues
         inds = np.argsort(evals)
         if which == 'LR':
             inds = inds[::-1]
-        else: pass
+        else:
+            pass
         inds = inds[:k]
         evals = evals[inds]
-        evecs = np.matrix(evecs[:,inds])
-    return np.real(evals),np.real(evecs)
+        evecs = np.matrix(evecs[:, inds])
+    return np.real(evals), np.real(evecs)
 
 
 #####################
 ##  Get Eigenstuff ##
 #####################
 
-def normalized_laplacian_eig(A,k=None):
+def normalized_laplacian_eig(A, k=None):
     """Return the eigenstuff of the normalized Laplacian matrix of graph
     associated with adjacency matrix A.
 
@@ -113,16 +116,16 @@ def normalized_laplacian_eig(A,k=None):
     nx.laplacian_matrix
     nx.normalized_laplacian_matrix
     """
-    n,m = A.shape
+    n, m = A.shape
     ##
     ## TODO: implement checks on the adjacency matrix
     ##
     degs = _flat(A.sum(axis=1))
     # the below will break if
-    inv_root_degs = [d**(-1/2) if d>_eps else 0 for d in degs]
+    inv_root_degs = [d ** (-1 / 2) if d > _eps else 0 for d in degs]
     inv_rootD = sps.spdiags(inv_root_degs, [0], n, n, format='csr')
     # build normalized diffusion matrix
-    K = inv_rootD*A*inv_rootD
-    evals,evecs = _eigs(K,k=k,which='LR')
-    lap_evals = 1-evals
-    return np.real(lap_evals),np.real(evecs)
+    K = inv_rootD * A * inv_rootD
+    evals, evecs = _eigs(K, k=k, which='LR')
+    lap_evals = 1 - evals
+    return np.real(lap_evals), np.real(evecs)
